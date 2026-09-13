@@ -15,6 +15,7 @@ const loadData = async () => {
     $('#sub-title').text(data.title + ' · 数据来源：' + data.source);
     $('#status').hide();
     renderCards(data);
+    renderBarChart(data);
   } catch (error) {
     $('#status').removeClass('alert-warning').addClass('alert-danger')
               .text('加载失败：' + error.message).show();
@@ -37,5 +38,23 @@ const renderCards = (data) => {
       </div>
     `);
   });
+};
+const renderBarChart = (data) => {
+  if (!state.barChart) {
+    state.barChart = echarts.init(document.getElementById('bar-chart'));
+  }
+  state.barChart.setOption({
+    color: ['#0d6efd', '#198754', '#fd7e14'],
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    legend: { top: 0 },
+    grid: { top: 40, left: 50, right: 20, bottom: 40 },
+    xAxis: { type: 'category', data: data.months, name: '月份' },
+    yAxis: { type: 'value', name: '销量（杯）' },
+    series: data.series.map(s => ({
+      name: s.category,
+      type: 'bar',
+      data: s.counts
+    }))
+  }, true);
 };
 loadData();
