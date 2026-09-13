@@ -16,6 +16,8 @@ const loadData = async () => {
     $('#status').hide();
     renderCards(data);
     renderBarChart(data);
+    renderLineChart(data);
+    bindResize();
   } catch (error) {
     $('#status').removeClass('alert-warning').addClass('alert-danger')
               .text('加载失败：' + error.message).show();
@@ -56,5 +58,51 @@ const renderBarChart = (data) => {
       data: s.counts
     }))
   }, true);
+};
+const renderLineChart = (data) => {
+  if (state.lineChart) {
+    state.lineChart.destroy();
+  }
+  const colors = ['#0d6efd', '#198754', '#fd7e14'];
+  const bgColors = ['rgba(13,110,253,.15)', 'rgba(25,135,84,.15)', 'rgba(253,126,20,.15)'];
+  state.lineChart = new Chart(document.getElementById('line-chart'), {
+    type: 'line',
+    data: {
+      labels: data.months,
+      datasets: data.series.map((s, i) => ({
+        label: s.category,
+        data: s.counts,
+        borderColor: colors[i],
+        backgroundColor: bgColors[i],
+        borderWidth: 2,
+        pointRadius: 3,
+        fill: false,
+        tension: 0.35
+      }))
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: { label: (ctx) => ctx.dataset.label + '：' + ctx.parsed.y + ' 杯' }
+        }
+      },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: '销量（杯）' } },
+        x: { title: { display: true, text: '2026年月份' } }
+      }
+    }
+  });
+};
+const bindResize = () => {
+  if (state.resizeBound) return;
+  state.resizeBound = true;
+  window.addEventListener('resize', () => {
+    if (state.barChart) state.barChart.resize();
+    if (state.lineChart) state.lineChart.resize();
+  });
 };
 loadData();
